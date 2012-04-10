@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 echo 'making A into column format'
-cat *A.dat | tr "," "\n" > rawa
+cat ../*A.dat | tr "," "\n" > rawa
 echo 'making B into column format'
-cat *B.dat | tr "," "\n" > rawb
+cat ../*B.dat | tr "," "\n" > rawb
 echo 'pasting b and a together'
 paste rawb rawa > rawba
 echo 'sorting for mina'
