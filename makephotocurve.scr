@@ -1,0 +1,37 @@
+#!/usr/bin/bash
+echo
+echo 'Converting A to rawA binary'
+echo
+#./csv2binary *A.dat rawA
+echo
+echo 'Converting B to rawB binary'
+echo
+#./csv2binary *B.dat rawB
+echo
+echo 'Running A - A2*B^2 - A1*B -A0 result in rawfire'
+echo
+#./firedetect rawA rawB rawfire
+echo
+echo 
+echo 'Converting B to normal B binary so can make image'
+#./normcsv2binary *B.dat normB
+#./normcsv2binary *A.dat normA
+echo 'generating b image from rawb'
+convert -endian LSB -size 1680x7825 -depth 16 -normalize gray:normA normA.png
+echo
+#echo 'generating fire mask'
+#convert -size 1680x5683 -endian LSB -depth 16 -black-threshold 100 -white-threshold 1 gray:rawfire firemask.png
+echo
+echo 'generating inverted fire mask'
+#convert firemask.png -negate bgmask.png
+echo
+echo 'generating color look up table'
+#convert -size 10x16 gradient:red-orange gradient:yellow-green gradient:green-blue -append grad.png
+echo
+echo 'generating color fire'
+#convert -size 1680x5683 gray:rawfire -clip-mask bgmask.png -contrast-stretch 89%,99.9999% grad.png -clut colfire.png
+echo 'generating final image out.png'
+#convert normb.png -negate -clip-mask firemask.png -contrast-stretch 10%,99% -clip-mask bgmask.png colfire.png -composite out.png
+echo
+echo 'displaying out.png'
+#display normb.png

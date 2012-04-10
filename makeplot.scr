@@ -1,0 +1,76 @@
+#!/usr/bin/bash
+echo 'making A into column format'
+cat *A.dat | tr "," "\n" > rawa
+echo 'making B into column format'
+cat *B.dat | tr "," "\n" > rawb
+echo 'pasting b and a together'
+paste rawb rawa > rawba
+echo 'sorting for mina'
+sort -k1n,1 -k2n,2 rawba > sobamin #this plots for each b min a
+echo 'sorting for maxa'
+sort -k1n,1 -k2nr,2 rawba > sobamax #//this plots for each b max a
+echo 'sorting for hisa'
+sort -n rawa > soa
+echo 'sorting for histb'
+sort -n rawb > sob
+echo 'making a histo with uniq -c'
+uniq -c soa > hista
+echo 'making a histo with uniq -c'
+uniq -c sob > histb
+echo 'keeping only minA and maxA for each B'
+echo '#Column 1 is B, column 2 is minA, column 3 is maxA for that B'>plba
+echo '#To curve fit in GNUPLOT' >>plba
+echo '#f(x) = a2*x*x+a1*x+a0'>>plba
+echo '#fit[from:to] f(x) 'plba' using 1:2 via a2,a1,a0'>>plba
+echo '#plot f(x) title f(x), "plba" using 1:2 title 'Amin', "plba" using 1:3 title 'Amax' with lines'>>plba
+echo '#setxrange[x:x]'>>plba
+echo '#replot'>>plba
+echo '#save "plot.plt"'>>plba
+echo '#to reload later enter load "plot.plt"'>>plba
+#remove column 1 from sobamax
+cat sobamax|awk {'print $2'}>maxA
+paste sobamin maxA > sobaminmaxA
+uniq -w5 sobaminmaxA >>plba
+echo
+echo 'removing temp files'
+rm rawa rawb rawba sobamin sobamax maxA sobaminmaxA soa sob
+echo
+echo 'job done plba ready for plot'
+gnuplot << EOF
+set title "Calibration Curve"
+set xlabel "B - ADC Counts"
+set ylabel "A - ADC Counts"
+#set yrange
+f(x) = a2 * x*x + a1*x + a0
+fit [-1900:-800] f(x) 'plba' using 1:2 via a2, a1, a0
+set label 1 sprintf("f(x) = a2 * x^2 + a1 * x + a0") at -1850, -1855
+set label 2 sprintf("a2 = %3.7e",a2) at -1850, -1870
+set label 3 sprintf("a1 = %3.7e", a1) at -1850, -1885
+set label 4 sprintf("a0 = %3.7e", a0) at -1850, -1900
+set term png
+set output "plba.png"
+set xrange [-1900:-800]
+set yrange [-2100:-1800]
+plot 'plba' using 1:2 title 'MinA', 'plba' using 1:3 title 'MaxA', f(x) title 'f(x)'
+set term svg
+set output 'plba.svg'
+replot
+set term x11
+save 'plot.plt'
+set term png
+set output 'hist.png'
+set x2range [-1900:-800]
+set xrange [-2100:-1800]
+set xtics nomirror
+set x2tics
+set yrange [0:10000]
+set title 'Channel A and B Histogram'
+set xlabel 'Channel A Values'
+set x2label 'Channel B Values'
+set ylabel 'Counts'
+#plot 'hista' using 2:1 axis x1y1, 'histb' using 2:1 axis x1y2
+plot 'hista' using 2:1 axis x1y1 title 'histA', 'histb' using 2:1 axis x2y1 title 'histb'
+set term x11
+quit
+EOF
+display hist.png
