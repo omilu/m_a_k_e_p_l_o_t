@@ -1,0 +1,41 @@
+This script formats the A and B dat files so they can be plotted
+in GNUPLOT and curve fit to find the characteristic curve for the
+detectors.
+
+Step1.  Extract the A and B data from the log file using testgrafix>fileover>export excel
+Step2.  There will be to CSV files one for A and one for B.  They must have
+names of the form *A.dat and *B.dat
+Step3.  Put the dat files in teh same directory as makeplot.scr
+Step4.  Run makeplot.scr
+Step5.  This will process the data making a newfile called plba
+	that contains the minA and maxA for each B
+Step6.  The curve fit plot is plba.png and the histogram is histo.png
+Additional gnuplot commands
+
+f(x) = a2*x*x+a1*x+a0
+fit [from:to] f(x) "plba" via a2, a1, a0
+plot 'plba', f(x)
+set title "Calibration Curve N149Z March 23, 2012"
+set xlabel "B channel counts" 0,0
+set xrange [0:600]
+f(x) = a2 * x * x + a1 * x + a0
+a2 = whatever
+a1 = whatever
+a0 = whatever
+set label "whatever" 
+save 'plot.plt'
+replot
+set label "whatever" at 1,2
+print a2
+set label 1 sprintf("a2 = %e", a2) at -1000, -3750
+unset label 1
+set term png size 950, 600
+set output "calibration_curve.png"
+set term pop #restores terminal to startup 
+
+
+
+
+
+	
+
